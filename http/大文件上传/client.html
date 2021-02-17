@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大文件上传</title>
+    <style>
+        .fileInfo {
+            width: 600px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            border: dotted 1px #eeeeee;
+            background: linear-gradient(to bottom, skyblue, pink);
+        }
+        
+        .title,
+        .content {
+            width: 100%;
+            height: 50%;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            text-align: center;
+            font-weight: bolder;
+            border: 1px solid #f90;
+        }
+        
+        .content>span {
+            flex: 1;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="file_upload">
+        <label for="fileUpload"></label>
+        <input type="file" id="fileUpload" onchange="fileSelect()">
+    </div>
+    <div>
+        <button onClick="upload()">上传</button>
+    </div>
+    <div class="fileInfo">
+        <div class="title">
+            <span>文件名</span>
+            <span>文件大小</span>
+            <span>文件类型</span>
+        </div>
+        <div class="content">
+            <span class="fileName"></span>
+            <span class="fileSize"></span>
+            <span class="fileType"></span>
+        </div>
+    </div>
+    <script type="text/javascript">
+        // 选择文件
+        function fileSelect() {
+            let file = document.querySelector('#fileUpload').files[0];
+            console.log(file)
+            document.querySelector('.fileName').innerHTML = file.name;
+            document.querySelector('.fileSize').innerHTML = getFileSize(file.size)
+            document.querySelector('.fileType').innerHTML = file.type;
+        }
+        // 上传
+        function upload() {
+            let file = document.querySelector('#fileUpload').files[0];
+            let fData = new FormData;
+            let sizeLimit = 2 * 1024 * 1024;
+            let fileCount = Math.ceil(file.size / sizeLimit)
+            for (let i = 0; i < fileCount; i++) {
+                let start = i * sizeLimit;
+                let end = Math.min(file.size, start + sizeLimit);
+                fData.append('data', file.slice(start, end));
+                fData.append('total', fileCount);
+                fData.append('index', i + 1);
+                fData.append('name', file.name);
+                fData.append('size', sizeLimit);
+                createXhr(fData)
+            }
+        }
+
+        function createXhr(data) {
+            let xhr = new XMLHttpRequest;
+            xhr.open('post', 'http://localhost:8080/fileUpload');
+            xhr.addEventListener('success', success)
+            xhr.send(data);
+        }
+
+        function success(e) {
+
+        }
+        // 计算文件大小
+        function getFileSize(byte) {
+            if (byte > 1024 * 1024) {
+                return (byte / (1024 * 1024)).toFixed(1) + 'M'
+            } else {
+                return (byte / 1024).toFixed(1) + 'K'
+            }
+        }
+    </script>
+</body>
+
+</html>
